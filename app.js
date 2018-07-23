@@ -64,6 +64,9 @@ app.get('/', function(req, res) {
                     res.setHeader('Content-Disposition', 'attachment;filename="export.pdf"');
                     res.setHeader('Content-Type', 'application/pdf');
                     res.send(buffer);
+                }).catch(function(err){
+                    console.error(err.stack);
+                    res.status(400).json({error: err.message});
                 });
 
             } catch(err) {
