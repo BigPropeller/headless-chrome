@@ -1,8 +1,10 @@
+require('dotenv').config()
 const express = require('express');
 const app = express();
 const puppeteer = require('puppeteer');
 const port = process.env.PORT || 8080;
 const validUrl = require('valid-url');
+const auth = require('basic-auth');
 
 const opts = {
     browser: {
@@ -37,6 +39,11 @@ var parseUrl = function(url) {
 };
 
 app.get('/', function(req, res) {
+    var user = auth(req);
+    if(!user || user.name != process.env.API_KEY){
+        res.status(401).json({error: 'Please include a valid API key in your request'});
+    }
+
     var urlToCapture = parseUrl(req.query.url);
 
     if (validUrl.isWebUri(urlToCapture)) {
