@@ -15,7 +15,8 @@ const opts = {
         ]
     },
     goto: {
-        waitUntil: 'networkidle2'
+        waitUntil: 'networkidle2',
+        timeout: 0
     },
     pdf: {
         printBackground: true,

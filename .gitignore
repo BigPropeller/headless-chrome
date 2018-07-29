@@ -56,3 +56,6 @@ typings/
 
 # dotenv environment variables file
 .env
+
+# Google App Engine app.yaml (includes private API keys)
+app.yaml
