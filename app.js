@@ -28,7 +28,7 @@ const opts = {
             right: '30px',
         }
     },
-    waitFor: 2000
+    waitFor: 5000
 };
 
 var parseUrl = function(url) {
@@ -60,7 +60,7 @@ app.get('/', function(req, res) {
 
             try {
                 await page.goto(urlToCapture, opts.goto);
-                page.waitFor(opts.waitFor);
+                await page.waitFor(opts.waitFor);
                 await page.pdf(opts.pdf).then(function(buffer) {
                     res.setHeader('Content-Disposition', 'attachment;filename="export.pdf"');
                     res.setHeader('Content-Type', 'application/pdf');
