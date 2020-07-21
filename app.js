@@ -28,7 +28,7 @@ const opts = {
             right: '30px',
         }
     },
-    waitFor: 5000
+    waitFor: 10000
 };
 
 var parseUrl = function(url) {
