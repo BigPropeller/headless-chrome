@@ -20,13 +20,9 @@ const opts = {
     },
     pdf: {
         printBackground: true,
-        format: 'A4',
-        margin: {
-            top: '30px',
-            bottom: '30px',
-            left: '30px',
-            right: '30px',
-        }
+        scale: 0.66,
+        format: 'Legal',
+        landscape: true
     },
     waitForTimeout: 10000
 };
