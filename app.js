@@ -18,12 +18,6 @@ const opts = {
         waitUntil: 'networkidle0',
         timeout: 0
     },
-    pdf: {
-        printBackground: true,
-        scale: 0.66,
-        format: 'Legal',
-        landscape: true
-    },
     waitForTimeout: 10000
 };
 
@@ -42,6 +36,9 @@ app.get('/', function(req, res) {
     }
 
     var urlToCapture = parseUrl(req.query.url);
+    var format = req.query.format || 'Legal';
+    var landscape = req.query.landscape == 'false' ? false : true;
+    var scale = Number(req.query.scale) ? Number(req.query.scale) : 0.66;
 
     if (validUrl.isWebUri(urlToCapture)) {
         console.log('Capturing: ' + urlToCapture);
@@ -57,7 +54,12 @@ app.get('/', function(req, res) {
             try {
                 await page.goto(urlToCapture, opts.goto);
                 await page.waitForTimeout(opts.waitForTimeout);
-                await page.pdf(opts.pdf).then(function(buffer) {
+                await page.pdf({
+                    printBackground: true,
+                    scale: scale,
+                    format: format,
+                    landscape: landscape
+                }).then(function(buffer) {
                     res.setHeader('Content-Disposition', 'attachment;filename="export.pdf"');
                     res.setHeader('Content-Type', 'application/pdf');
                     res.send(buffer);
