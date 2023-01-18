@@ -54,6 +54,17 @@ app.get('/', function(req, res) {
             try {
                 await page.goto(urlToCapture, opts.goto);
                 await page.waitForTimeout(opts.waitForTimeout);
+
+                // Substitute emojis with Twemoji
+                await page.addScriptTag({ url: 'https://unpkg.com/twemoji@latest/dist/twemoji.min.js' });
+                await page.addStyleTag({content: 'img.emoji {height: 1em;width: 1em;margin: 0 .05em 0 .1em;vertical-align: -0.1em;}'});
+                await page.waitForTimeout(1000);
+                await page.evaluate(() => {
+                   twemoji.parse(document.body);
+                });
+                await page.waitForTimeout(2000);
+
+
                 await page.pdf({
                     printBackground: true,
                     scale: scale,
