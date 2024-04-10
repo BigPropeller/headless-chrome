@@ -1,4 +1,4 @@
-runtime: nodejs12
+runtime: nodejs20
 instance_class: F4_1G
 env_variables:
   API_KEY: "api-key-goes-here"
