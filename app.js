@@ -17,8 +17,7 @@ const opts = {
     goto: {
         waitUntil: 'networkidle0',
         timeout: 0
-    },
-    waitForTimeout: 10000
+    }
 };
 
 var parseUrl = function(url) {
@@ -41,7 +40,7 @@ app.get('/', function(req, res) {
     var scale = Number(req.query.scale) ? Number(req.query.scale) : 0.66;
 
     if (validUrl.isWebUri(urlToCapture)) {
-        console.log('Capturing: ' + urlToCapture);
+        console.log('Capturing: ' + urlToCapture + ` | x${scale} ${format}`);
         (async() => {
             const browser = await puppeteer.launch(opts.browser);
             const page = await browser.newPage();
@@ -52,19 +51,58 @@ app.get('/', function(req, res) {
             });
 
             try {
+                // Go to the page
                 await page.goto(urlToCapture, opts.goto);
-                await page.waitForTimeout(opts.waitForTimeout);
 
-                // Substitute emojis with Twemoji
-                await page.addScriptTag({ url: 'https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js' });
-                await page.addStyleTag({content: 'img.emoji {height: 1em;width: 1em;margin: 0 .05em 0 .1em;vertical-align: -0.1em;}'});
-                await page.waitForTimeout(1000);
+                // Wait for all images to finish loading
+                await page.waitForFunction(
+                  () =>
+                    document.images.length &&
+                    Array.from(document.images).every((img) => img.complete)
+                );
+
+                // Add Twemoji script
                 await page.evaluate(() => {
-                   twemoji.parse(document.body);
+                    return new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src =
+                        'https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js';
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
                 });
-                await page.waitForTimeout(2000);
+                
+                // Add styles for Twemoji images
+                await page.addStyleTag({content: 'img.emoji {height: 1em;width: 1em;margin: 0 .05em 0 .1em;vertical-align: -0.1em;}'});
+                
+                // Substitute emojis with Twemoji images and wait for them to finish loading
+                await page.evaluate(() => {
+                    twemoji.parse(document.body);
 
+                    return new Promise((resolve, reject) => {
+                        // Setup observer to check images after DOM changes
+                        const observer = new MutationObserver((mutations, obs) => {
+                            if (Array.from(document.images).every((img) => img.complete)) {
+                                obs.disconnect();
+                                resolve();
+                            }
+                        });
+                        // Start observing
+                        observer.observe(document.body, {
+                            childList: true,
+                            subtree: true,
+                            attributes: true,
+                        });
+                        // Check images immediately in case they are already loaded
+                        if (Array.from(document.images).every((img) => img.complete)) {
+                            observer.disconnect();
+                            resolve();
+                        }
+                    });
+                });
 
+                // Capture the page as a PDF
                 await page.pdf({
                     printBackground: true,
                     scale: scale,
