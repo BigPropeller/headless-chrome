@@ -8,6 +8,7 @@ const auth = require('basic-auth');
 
 const opts = {
     browser: {
+        headless: true,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
