@@ -66,8 +66,7 @@ app.get('/', function(req, res) {
                 await page.evaluate(() => {
                     return new Promise((resolve, reject) => {
                         const script = document.createElement('script');
-                        script.src =
-                        'https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js';
+                        script.src = 'https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js';
                         script.onload = resolve;
                         script.onerror = reject;
                         document.head.appendChild(script);
@@ -77,31 +76,17 @@ app.get('/', function(req, res) {
                 // Add styles for Twemoji images
                 await page.addStyleTag({content: 'img.emoji {height: 1em;width: 1em;margin: 0 .05em 0 .1em;vertical-align: -0.1em;}'});
                 
-                // Substitute emojis with Twemoji images and wait for them to finish loading
+                // Substitute emojis with Twemoji images
                 await page.evaluate(() => {
                     twemoji.parse(document.body);
-
-                    return new Promise((resolve, reject) => {
-                        // Setup observer to check images after DOM changes
-                        const observer = new MutationObserver((mutations, obs) => {
-                            if (Array.from(document.images).every((img) => img.complete)) {
-                                obs.disconnect();
-                                resolve();
-                            }
-                        });
-                        // Start observing
-                        observer.observe(document.body, {
-                            childList: true,
-                            subtree: true,
-                            attributes: true,
-                        });
-                        // Check images immediately in case they are already loaded
-                        if (Array.from(document.images).every((img) => img.complete)) {
-                            observer.disconnect();
-                            resolve();
-                        }
-                    });
                 });
+
+                // Wait for all Twemoji images to finish loading
+                await page.waitForFunction(
+                  () =>
+                    document.images.length &&
+                    Array.from(document.images).every((img) => img.complete)
+                );
 
                 // Capture the page as a PDF
                 await page.pdf({
